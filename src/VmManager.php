@@ -8,7 +8,9 @@ class VmManager
 {
     public function entry(): \Illuminate\Http\RedirectResponse|\Illuminate\View\View
     {
-        return app()->call([\Geodit\VmOsjs\Http\Controllers\VmPortalController::class, '__invoke'], [
+        $controller = app(\Geodit\VmOsjs\Http\Controllers\VmPortalController::class);
+
+        return app()->call([$controller, '__invoke'], [
             'request' => request(),
         ]);
     }
