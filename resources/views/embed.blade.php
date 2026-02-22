@@ -17,6 +17,6 @@
   </script>
 </head>
 <body>
-  <p style="font-family:Arial;padding:16px">VM package embed prêt. Branche le runtime OS.js ici.</p>
+  <p style="font-family:Arial;padding:16px">VM package embed pret. Branche le runtime OS.js ici.</p>
 </body>
 </html>
