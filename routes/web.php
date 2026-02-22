@@ -9,13 +9,10 @@ $path = trim((string) config('vm_osjs.path', 'vm'), '/');
 $path = $path !== '' ? $path : 'vm';
 $osjsBasePath = trim((string) config('vm_osjs.osjs_base_url', '/osjs'), '/');
 $osjsBasePath = $osjsBasePath !== '' ? $osjsBasePath : 'osjs';
+$osjsDistPath = realpath(__DIR__ . '/../osjs/dist');
 
-Route::get('/' . $path, VmPortalController::class)->name(config('vm_osjs.route_names.portal', 'vm.osjs.portal'));
-Route::get('/' . $path . '/embed', VmEmbedController::class)->name(config('vm_osjs.route_names.embed', 'vm.osjs.embed'));
-Route::post('/' . $path . '/logout', VmLogoutController::class)->name(config('vm_osjs.route_names.logout', 'vm.osjs.logout'));
-Route::get('/' . $osjsBasePath . '/{path}', function (string $path) {
-    $base = realpath(__DIR__ . '/../osjs/dist');
-    if (! $base) {
+$serveOsjsAsset = static function (string $path) use ($osjsDistPath) {
+    if (! $osjsDistPath) {
         abort(404);
     }
 
@@ -24,7 +21,7 @@ Route::get('/' . $osjsBasePath . '/{path}', function (string $path) {
         abort(404);
     }
 
-    $file = $base . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
+    $file = $osjsDistPath . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
     if (! is_file($file)) {
         abort(404);
     }
@@ -47,4 +44,11 @@ Route::get('/' . $osjsBasePath . '/{path}', function (string $path) {
     return $mime
         ? response()->file($file, ['Content-Type' => $mime])
         : response()->file($file);
-})->where('path', '.*')->name('vm.osjs.assets');
+};
+
+Route::get('/' . $path, VmPortalController::class)->name(config('vm_osjs.route_names.portal', 'vm.osjs.portal'));
+Route::get('/' . $path . '/embed', VmEmbedController::class)->name(config('vm_osjs.route_names.embed', 'vm.osjs.embed'));
+Route::post('/' . $path . '/logout', VmLogoutController::class)->name(config('vm_osjs.route_names.logout', 'vm.osjs.logout'));
+Route::get('/' . $osjsBasePath . '/{path}', $serveOsjsAsset)->where('path', '.*')->name('vm.osjs.assets');
+Route::get('/metadata.json', static fn () => $serveOsjsAsset('metadata.json'))->name('vm.osjs.metadata');
+Route::get('/' . $path . '/embed/{path}', $serveOsjsAsset)->where('path', '.*')->name('vm.osjs.embed.assets');
